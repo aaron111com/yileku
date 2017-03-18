@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="    
+    	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+    	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+	<!-- 自动识别用哪种代理模式 -->
+	<aop:aspectj-autoproxy proxy-target-class="true" />
+	<context:component-scan base-package="com" />
+	<context:property-placeholder location="classpath:db.properties" />
+	<!-- 使用c3p0 的数据源 -->
+	<bean name="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="driverClass" value="${db.driverClass}" />
+		<property name="jdbcUrl" value="${db.jdbcUrl}" />
+		<property name="user" value="${db.user}" />
+		<property name="password" value="${db.password}" />
+		<property name="initialPoolSize" value="2" /><!-- 初始化连接池里面有多少连接 -->
+		<property name="maxIdleTime" value="30" /><!-- 最大的空闲时间 -->
+		<property name="maxPoolSize" value="10" /><!-- 连接池的最大数 -->
+		<property name="minPoolSize" value="2" /><!-- 连接池最小值 -->
+		<property name="maxStatements" value="200" /><!-- statement 对象的最大值 -->
+		<property name="testConnectionOnCheckout" value="true"></property>
+		<!-- <property name="connection.autocommit" value="true"></property> -->
+	</bean>
+
+	<bean name="sessionFactory"
+		class="org.springframework.orm.hibernate4.LocalSessionFactoryBean"
+		scope="singleton">
+		<property name="dataSource" ref="dataSource"></property>
+
+		<property name="packagesToScan">
+			<list>
+				<value>com.beans</value>
+			</list>
+		</property>
+
+		<property name="hibernateProperties">
+			<value>
+				hibernate.format_sql=true
+				hibernate.hbm2ddl.auto=update
+				hibernate.show_sql=true
+			</value>
+		</property>
+	</bean>
+	<!-- 使用spring中的hibernate事务管理器 -->
+	<bean name="txManager"
+		class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+
+
+	<aop:config>
+		<aop:pointcut expression="execution(* com.dao.impl.*.*(..))"
+			id="myCut" />
+		<aop:advisor pointcut-ref="myCut" advice-ref="txadvice" />
+
+	</aop:config>
+	<!-- 定义事务的传播行为 -->
+	<tx:advice id="txadvice" transaction-manager="txManager">
+		<tx:attributes>
+			<tx:method name="*" propagation="REQUIRED" />
+		</tx:attributes>
+	</tx:advice>
+
+
+</beans>	
+
+
+
+
+
+
+

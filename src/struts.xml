@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+
+<struts>
+	<constant name="struts.objectFacvtory" value="spring" />
+	<package name="pageageOne" namespace="/admin" extends="json-default">
+		<interceptors>
+			<interceptor name="myInt" class="com.interceptor.MyInteceptor">
+				<param name="excludeMethods">checkUser,add</param>
+			</interceptor>
+		</interceptors>
+
+		<action name="loginAction_*" class="loginAction" method="{1}">
+			<result name="json_success" type="json">
+			</result>
+			<result name="success">/WEB-INF/main.jsp</result>
+			<result name="update">/update.jsp</result>
+			<result name="error" type="redirect">/index.jsp</result>
+			<interceptor-ref name="myInt" />
+			<interceptor-ref name="defaultStack" />
+		</action>
+
+		<action name="menuAction_*" class="com.action.MenuAction"
+			method="{1}">
+			<result name="json_success" type="json">
+
+			</result>
+
+		</action>
+		<action name="privgAction_*" class="com.action.PrivgAction"
+			method="{1}">
+			<result name="json_success" type="json">
+			</result>
+			<result name="update">/modifyprivg.jsp</result>
+
+		</action>
+
+	</package>
+
+</struts>
